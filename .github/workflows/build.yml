@@ -1,91 +1,92 @@
 name: Build CREATUBE STUDIO
-true:
+
+on:
   push:
-    branches:
-    - main
-  workflow_dispatch: null
+    branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   build-macos:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os:
-        - macos-13
-        - macos-14
+        os: [ macos-13, macos-14 ]
+
     steps:
-    - name: 📥 Checkout kode
-      uses: actions/checkout@v4
-    - name: 🐍 Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - name: 📦 Install dependency
-      run: 'python3 -m pip install --upgrade pip
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        python3 -m pip install pillow pyinstaller
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-        '
-    - name: 🧹 Bersihkan build lama
-      run: rm -rf build dist
-    - name: 🚀 Build .app
-      run: python3 -m PyInstaller CREATUBE_STUDIO.spec --noconfirm --clean
-    - name: ✅ Verifikasi .app
-      run: 'ls -la "dist/CREATUBE STUDIO.app/Contents/MacOS/"
+      - name: Install deps
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pillow pyinstaller
 
-        test -x "dist/CREATUBE STUDIO.app/Contents/MacOS/CREATUBE STUDIO"
+      - name: Clean
+        run: rm -rf build dist
 
-        '
-    - name: 🗜 Package jadi zip (hilangkan atribut yang bikin error)
-      run: 'cd dist
+      - name: Build
+        run: python3 -m PyInstaller CREATUBE_STUDIO.spec --noconfirm --clean
 
-        # -y: simpan symlink, --no-qtn: Hindari quarantine attribute
+      - name: Verify
+        run: |
+          ls -la "dist/CREATUBE STUDIO.app/Contents/MacOS/"
+          test -x "dist/CREATUBE STUDIO.app/Contents/MacOS/CREATUBE STUDIO"
 
-        zip -r -y --no-qtn "../CREATUBE-STUDIO-macOS-${{ matrix.os }}.zip" "CREATUBE STUDIO.app"
+      - name: Package
+        run: |
+          cd dist
+          zip -r -y "../CREATUBE-STUDIO-macOS-${{ matrix.os }}.zip" "CREATUBE STUDIO.app"
 
-        '
-    - name: ⬆ Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: CREATUBE-STUDIO-macOS-${{ matrix.os }}
-        path: CREATUBE-STUDIO-macOS-${{ matrix.os }}.zip
-        retention-days: 90
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CREATUBE-STUDIO-macOS-${{ matrix.os }}
+          path: CREATUBE-STUDIO-macOS-${{ matrix.os }}.zip
+          retention-days: 90
+
   build-windows:
     runs-on: windows-latest
+
     steps:
-    - name: 📥 Checkout kode
-      uses: actions/checkout@v4
-    - name: 🐍 Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - name: 📦 Install dependency
-      run: 'python -m pip install --upgrade pip
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        python -m pip install pillow pyinstaller
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-        '
-    - name: 🧹 Bersihkan build lama
-      run: 'if (Test-Path build) { Remove-Item -Recurse -Force build }
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pillow pyinstaller
 
-        if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+      - name: Clean
+        run: |
+          if (Test-Path build) { Remove-Item -Recurse -Force build }
+          if (Test-Path dist) { Remove-Item -Recurse -Force dist }
 
-        '
-    - name: 🚀 Build .exe
-      run: python -m PyInstaller CREATUBE_STUDIO.spec --noconfirm --clean
-    - name: ✅ Verifikasi .exe
-      run: 'Get-ChildItem "dist/CREATUBE STUDIO/" | Select-Object Name
+      - name: Build
+        run: python -m PyInstaller CREATUBE_STUDIO.spec --noconfirm --clean
 
-        Test-Path "dist/CREATUBE STUDIO/CREATUBE STUDIO.exe" -PathType Leaf
+      - name: Verify
+        run: |
+          Get-ChildItem "dist/CREATUBE STUDIO/" | Select-Object Name
+          Test-Path "dist/CREATUBE STUDIO/CREATUBE STUDIO.exe" -PathType Leaf
 
-        '
-    - name: 🗜 Package jadi zip
-      run: 'Compress-Archive -Path "dist/CREATUBE STUDIO" -DestinationPath "CREATUBE-STUDIO-Windows.zip"
+      - name: Package
+        run: |
+          Compress-Archive -Path "dist/CREATUBE STUDIO" -DestinationPath "CREATUBE-STUDIO-Windows.zip"
 
-        '
-    - name: ⬆ Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: CREATUBE-STUDIO-Windows
-        path: CREATUBE-STUDIO-Windows.zip
-        retention-days: 90
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CREATUBE-STUDIO-Windows
+          path: CREATUBE-STUDIO-Windows.zip
+          retention-days: 90
