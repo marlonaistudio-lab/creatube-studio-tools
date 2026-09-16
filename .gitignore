@@ -1,0 +1,9 @@
+build/
+dist/
+*.pyc
+__pycache__/
+*.spec.bak
+ffmpeg/
+icon.icns
+icon.ico
+settings.json
